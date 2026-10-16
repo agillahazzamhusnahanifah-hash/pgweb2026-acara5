@@ -6,8 +6,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Leaflet JS</title>
 
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <!-- PERBAIKAN 1: CSS Bootstrap Utama ditambahkan kembali -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Leaflet.awesome-markers CSS -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css">
+
+    <!-- Google Fonts: Plus Jakarta Sans, Caveat, Patrick Hand, Comic Neue -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Comic+Neue:wght@700&family=Patrick+Hand&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
 
     <style>
         html,
@@ -16,16 +38,1815 @@
             height: 100%;
             margin: 0;
             padding: 0;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         #map {
             width: 100%;
+            height: calc(100vh - 56px);
+            /* Disesuaikan agar pas di bawah navbar */
+        }
+
+        /* ========================================================
+           STYLING POPUP TITIK TOPONIMI (INSPIRASI MODERN CARD)
+           ======================================================== */
+        .inspo-leaflet-popup .leaflet-popup-content-wrapper {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 14px;
+            box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.16), 0 8px 16px -4px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e5e7eb;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .inspo-leaflet-popup .leaflet-popup-content {
+            margin: 0;
+            line-height: 1.4;
+            width: 290px !important;
+        }
+
+        .inspo-leaflet-popup .leaflet-popup-tip {
+            background: #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .inspo-leaflet-popup a.leaflet-popup-close-button {
+            top: 12px;
+            right: 12px;
+            color: #94a3b8;
+            font-size: 15px;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            text-align: center;
+            border-radius: 50%;
+            background: rgba(241, 245, 249, 0.9);
+            transition: all 0.2s ease;
+            z-index: 20;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .inspo-leaflet-popup a.leaflet-popup-close-button:hover {
+            color: #0f172a;
+            background: #e2e8f0;
+        }
+
+        /* Container Kartu */
+        .inspo-card-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Card (Soft Gray Box) */
+        .inspo-top-box {
+            background-color: #f3f4f6;
+            border-radius: 14px;
+            padding: 13px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .inspo-top-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* Pill Badge */
+        .inspo-pill-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background-color: #ffffff;
+            color: #374151;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 9999px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            margin-bottom: 6px;
+            letter-spacing: -0.01em;
+        }
+
+        /* Judul & Subjudul */
+        .inspo-card-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: #111827;
+            margin: 0 0 2px 0;
+            line-height: 1.25;
+            letter-spacing: -0.025em;
+            word-break: break-word;
+        }
+
+        .inspo-card-subtitle {
+            font-size: 11.5px;
+            color: #6b7280;
+            margin: 0;
+            line-height: 1.3;
+            font-weight: 400;
+        }
+
+        /* Header Visual (Right Column) */
+        .inspo-top-visual {
+            width: 78px;
+            height: 78px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Foto Thumbnail (Untuk Titik yang Memiliki Gambar) */
+        .inspo-img-thumb-wrap {
+            width: 78px;
+            height: 78px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            cursor: pointer;
+            background-color: #e5e7eb;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;
+        }
+
+        .inspo-img-thumb-wrap:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+        }
+
+        .inspo-img-thumb {
+            width: 100%;
             height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .inspo-img-badge-overlay {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(3px);
+            color: #ffffff;
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            pointer-events: none;
+        }
+
+        /* Floral Gradient Graphic (Mirip Ilustrasi pada Inspo untuk Titik Tanpa Gambar) */
+        .inspo-graphic-art {
+            width: 78px;
+            height: 78px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .inspo-graphic-art svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            filter: drop-shadow(0 4px 8px rgba(244, 63, 142, 0.25));
+        }
+
+        /* Middle Section: Detail Informasi */
+        .inspo-middle-section {
+            padding-top: 12px;
+        }
+
+        .inspo-sec-heading {
+            font-size: 11.5px;
+            font-weight: 500;
+            color: #6b7280;
+            margin-bottom: 7px;
+        }
+
+        .inspo-features-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .inspo-feature-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            color: #374151;
+        }
+
+        .inspo-feature-icon {
+            width: 18px;
+            font-size: 13px;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .inspo-feature-text {
+            flex: 1;
+            line-height: 1.35;
+        }
+
+        .inspo-feature-text strong {
+            color: #111827;
+            font-weight: 700;
+        }
+
+        /* Bottom Section: Koordinat & Tombol */
+        .inspo-bottom-section {
+            margin-top: 11px;
+        }
+
+        .inspo-action-bar {
+            background-color: #f3f4f6;
+            border-radius: 10px;
+            padding: 6px 8px 6px 11px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .inspo-action-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .inspo-action-icon {
+            color: #6b7280;
+            font-size: 11.5px;
+            flex-shrink: 0;
+        }
+
+        .inspo-action-coords {
+            font-size: 11.5px;
+            color: #374151;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .inspo-action-right {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .inspo-copy-btn {
+            background-color: #18181b;
+            color: #ffffff;
+            border: none;
+            border-radius: 7px;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: inherit;
+        }
+
+        .inspo-copy-btn:hover {
+            background-color: #27272a;
+            transform: translateY(-1px);
+        }
+
+        .inspo-copy-btn.copied {
+            background-color: #16a34a !important;
+        }
+
+        .inspo-maps-link {
+            background-color: #ffffff;
+            color: #374151;
+            border-radius: 7px;
+            padding: 5px 8px;
+            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .inspo-maps-link:hover {
+            background-color: #e5e7eb;
+            color: #111827;
+        }
+
+        /* ========================================================
+           STYLING NAVBAR KUSTOM (#f9f6bd & ikon #700143)
+           ======================================================== */
+        .custom-navbar {
+            background-color: #f9f6bd !important;
+            border-bottom: 2px solid rgba(112, 1, 67, 0.12);
+            box-shadow: 0 4px 14px rgba(112, 1, 67, 0.08);
+            padding-top: 8px;
+            padding-bottom: 8px;
+        }
+
+        .custom-navbar .navbar-brand {
+            font-weight: 700;
+            color: #700143 !important;
+            letter-spacing: -0.01em;
+            font-size: 1.15rem;
+        }
+
+        .custom-navbar .nav-link {
+            font-weight: 600;
+            color: #4a002c !important;
+            transition: all 0.2s ease;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .custom-navbar .nav-link:hover {
+            color: #700143 !important;
+            background-color: rgba(112, 1, 67, 0.08);
+        }
+
+        /* Semua ikon di navbar menggunakan kode warna #700143 */
+        .custom-navbar i,
+        .custom-navbar .navbar-brand i,
+        .custom-navbar .nav-link i {
+            color: #700143 !important;
+            margin-right: 5px;
+        }
+
+        .custom-navbar .navbar-toggler {
+            border-color: rgba(112, 1, 67, 0.35);
+        }
+
+        /* ========================================================
+           LEGENDA KOMPAK & SEDERHANA DI KANAN BAWAH (DOCKED)
+           ======================================================== */
+        .compact-legend-container {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            pointer-events: auto;
+            user-select: none;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            transition: transform 0.25s ease, opacity 0.2s ease;
+        }
+
+        .compact-legend-card {
+            width: 215px;
+            background: #ffffff;
+            border: 1.5px solid rgba(112, 1, 67, 0.2);
+            border-radius: 14px;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(112, 1, 67, 0.08);
+            overflow: hidden;
+            transition: all 0.25s ease;
+        }
+
+        .compact-legend-header {
+            background-color: #f9f6bd;
+            border-bottom: 1.5px solid rgba(112, 1, 67, 0.15);
+            padding: 7px 11px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .compact-legend-header:hover {
+            background-color: #f4f0ab;
+        }
+
+        .compact-legend-title {
+            font-size: 12px;
+            font-weight: 800;
+            color: #700143;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .compact-legend-title i {
+            color: #700143;
+            font-size: 12px;
+        }
+
+        .compact-legend-min-btn {
+            background: rgba(112, 1, 67, 0.09);
+            border: none;
+            border-radius: 6px;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #700143;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .compact-legend-min-btn:hover {
+            background: #700143;
+            color: #ffffff;
+            transform: scale(1.08);
+        }
+
+        .compact-legend-body {
+            padding: 8px 11px 10px 11px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            max-height: calc(100vh - 175px);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(112, 1, 67, 0.25) transparent;
+        }
+
+        .compact-legend-body::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .compact-legend-body::-webkit-scrollbar-thumb {
+            background-color: rgba(112, 1, 67, 0.25);
+            border-radius: 3px;
+        }
+
+        .compact-legend-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .compact-group-label {
+            font-size: 9.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #700143;
+            opacity: 0.85;
+            border-bottom: 1px dashed rgba(112, 1, 67, 0.15);
+            padding-bottom: 2px;
+            margin-bottom: 1px;
+        }
+
+        .compact-toponimi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3px 6px;
+        }
+
+        .compact-topo-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10.5px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .compact-topo-item i {
+            font-size: 11px;
+            width: 14px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .compact-list {
+            display: flex;
+            flex-direction: column;
+            gap: 3.5px;
+        }
+
+        .compact-list-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 10.5px;
+            font-weight: 600;
+            color: #1f2937;
+            line-height: 1.25;
+        }
+
+        .compact-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+        }
+
+        .compact-road-line {
+            width: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Mode Minimized Pill yang ramping */
+        .compact-legend-pill {
+            display: none;
+            align-items: center;
+            gap: 7px;
+            background-color: #700143;
+            color: #ffffff;
+            border: 2px solid #ffffff;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 6px 18px rgba(112, 1, 67, 0.38);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .compact-legend-pill:hover {
+            background-color: #550133;
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 8px 22px rgba(112, 1, 67, 0.48);
+        }
+
+        .compact-legend-container.minimized .compact-legend-card {
+            display: none;
+        }
+
+        .compact-legend-container.minimized .compact-legend-pill {
+            display: inline-flex;
+        }
+
+        @keyframes legendPulseHighlight {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(112, 1, 67, 0.6);
+            }
+
+            50% {
+                transform: scale(1.04);
+                box-shadow: 0 0 0 10px rgba(112, 1, 67, 0);
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(112, 1, 67, 0);
+            }
+        }
+
+        .compact-legend-container.pulse-highlight {
+            animation: legendPulseHighlight 0.75s ease;
+        }
+
+        /* ========================================================
+           MODAL LEGENDA BESAR (TEMA PERANGKO / STAMP)
+           ======================================================== */
+        .modal-stamp-dialog {
+            max-width: 480px;
+            margin: 2rem auto;
+            overflow: visible !important;
+        }
+
+        .modal-stamp-content {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            position: relative;
+            padding: 34px 18px 24px 18px;
+            overflow: visible !important;
+        }
+
+        /* Container panggung agar stiker dan lakban tidak terpotong masking */
+        .stamp-stage {
+            position: relative;
+            overflow: visible !important;
+        }
+
+        /* Kotak Luar Perangko (Warna Oranye Keemasan dengan Perforasi Gigi Perangko) */
+        .stamp-wrapper {
+            position: relative;
+            background-color: #e69500;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 10px 20px rgba(0, 0, 0, 0.2);
+            /* Masking gigi perangko */
+            -webkit-mask-image: radial-gradient(circle 7px at 14px 0, transparent 0, transparent 7px, black 7.5px),
+                radial-gradient(circle 7px at 14px 100%, transparent 0, transparent 7px, black 7.5px),
+                radial-gradient(circle 7px at 0 14px, transparent 0, transparent 7px, black 7.5px),
+                radial-gradient(circle 7px at 100% 14px, transparent 0, transparent 7px, black 7.5px);
+            -webkit-mask-size: 28px 100%, 28px 100%, 100% 28px, 100% 28px;
+            -webkit-mask-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+            -webkit-mask-composite: source-in;
+            mask-composite: intersect;
+        }
+
+        @supports not ((-webkit-mask-composite: source-in) or (mask-composite: intersect)) {
+            .stamp-wrapper {
+                border: 12px solid #e69500;
+                background-color: #e69500;
+            }
+        }
+
+        /* Kertas Dalam Perangko (Kuning Pastel Lembut / Krem) */
+        .stamp-sheet {
+            background-color: #fbf5b7;
+            border-radius: 4px;
+            padding: 28px 24px 34px 24px;
+            position: relative;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            border: 2px dashed rgba(217, 119, 6, 0.4);
+            max-height: calc(100vh - 160px);
+            overflow-y: auto;
+        }
+
+        /* Tombol Tutup Modal */
+        .stamp-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(217, 119, 6, 0.25);
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #700143;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+            transition: all 0.2s ease;
+            z-index: 15;
+        }
+
+        .stamp-close-btn:hover {
+            background: #ffffff;
+            transform: scale(1.1);
+            color: #e11d48;
+        }
+
+        /* Lakban / Tape Putih "Legenda" di Pojok Kanan Atas (Di Luar Masking Perangko) */
+        .stamp-tape {
+            position: absolute;
+            top: -14px;
+            right: 24px;
+            background: #ffffff;
+            padding: 8px 38px;
+            transform: rotate(3.5deg);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+            clip-path: polygon(0% 0%, 3% 10%, 0% 20%, 3% 30%, 0% 40%, 3% 50%, 0% 60%, 3% 70%, 0% 80%, 3% 90%, 0% 100%,
+                    100% 100%, 97% 90%, 100% 80%, 97% 70%, 100% 60%, 97% 50%, 100% 40%, 97% 30%, 100% 20%, 97% 10%, 100% 0%);
+            z-index: 30;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+        }
+
+        .stamp-tape-text {
+            font-family: 'Caveat', 'Brush Script MT', cursive, sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: #1d4ed8;
+            line-height: 1.25;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(29, 78, 216, 0.15);
+            white-space: nowrap;
+            display: inline-block;
+            padding: 2px 4px;
+        }
+
+        /* Stiker Bintang / Segel Merah di Pojok Kiri Bawah */
+        .stamp-starburst {
+            position: absolute;
+            bottom: -16px;
+            left: -16px;
+            width: 72px;
+            height: 72px;
+            transform: rotate(-10deg);
+            filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
+            z-index: 30;
+            pointer-events: none;
+        }
+
+        /* Judul Bagian Stamp */
+        .stamp-section-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #d97706;
+            letter-spacing: 0.06em;
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stamp-section-line {
+            width: 100%;
+            height: 2px;
+            background-color: #d97706;
+            margin-bottom: 14px;
+            border-radius: 1px;
+        }
+
+        /* Grid App Icon untuk Toponimi */
+        .stamp-app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .stamp-app-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .stamp-app-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.16);
+            margin-bottom: 5px;
+            transition: transform 0.2s ease;
+        }
+
+        .stamp-app-card:hover .stamp-app-icon {
+            transform: translateY(-2px) scale(1.06);
+        }
+
+        .stamp-app-name {
+            font-size: 11px;
+            font-weight: 800;
+            color: #d97706;
+            line-height: 1.2;
+        }
+
+        .stamp-app-sub {
+            font-size: 9.5px;
+            color: #b45309;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        /* List Bullet untuk Penduduk */
+        .stamp-bullet-list {
+            list-style: none;
+            padding-left: 2px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stamp-bullet-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #451a03;
+            font-weight: 600;
+        }
+
+        .stamp-bullet-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 1.5px solid #78350f;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        }
+
+        .stamp-item-note {
+            color: #92400e;
+            font-weight: 500;
+            font-size: 12px;
+        }
+
+        /* List Jaringan Jalan */
+        .stamp-road-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+
+        .stamp-road-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12.5px;
+            color: #451a03;
+            font-weight: 600;
+        }
+
+        .stamp-road-line {
+            width: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* ========================================================
+           SKALA PETA DI KIRI BAWAH (BACKGROUND #700143)
+           ======================================================== */
+        .custom-scale-widget {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            pointer-events: auto;
+            user-select: none;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .custom-scale-card {
+            background-color: #700143;
+            border: 2px solid #ffffff;
+            border-radius: 14px;
+            padding: 8px 14px;
+            box-shadow: 0 8px 24px rgba(112, 1, 67, 0.45), 0 2px 8px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 145px;
+        }
+
+        .custom-scale-widget:hover .custom-scale-card {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(112, 1, 67, 0.55);
+        }
+
+        .custom-scale-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .custom-scale-title {
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .custom-scale-ratio-badge {
+            background: rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 1px 7px;
+            border-radius: 9999px;
+            letter-spacing: 0.02em;
+        }
+
+        .custom-scale-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 1px;
+        }
+
+        .custom-scale-bar-track {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.35);
+            border-radius: 2px;
+            position: relative;
+            flex-shrink: 0;
+            min-width: 60px;
+        }
+
+        .custom-scale-bar-fill {
+            height: 100%;
+            background: #ffffff;
+            border-radius: 2px;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            width: 70px;
+            transition: width 0.25s ease;
+        }
+
+        .custom-scale-bar-fill::before,
+        .custom-scale-bar-fill::after {
+            content: "";
+            position: absolute;
+            top: -3px;
+            width: 2px;
+            height: 10px;
+            background: #ffffff;
+            border-radius: 1px;
+        }
+
+        .custom-scale-bar-fill::before {
+            left: 0;
+        }
+
+        .custom-scale-bar-fill::after {
+            right: 0;
+        }
+
+        .custom-scale-dist-text {
+            color: #ffffff;
+            font-size: 11.5px;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+
+        /* ========================================================
+           MODAL ABOUT: MEMBER CARD (SESUAI CONTOH GAMBAR REFERENSI)
+           ======================================================== */
+        .member-card-modal-dialog {
+            max-width: 500px;
+            margin: 2rem auto;
+            position: relative;
+        }
+
+        .member-card-modal-content {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            position: relative;
+        }
+
+        .member-card-close-btn {
+            position: absolute;
+            top: -12px;
+            right: -10px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            border: 2.5px solid #1a1a1a;
+            color: #1a1a1a;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            z-index: 100;
+            transition: all 0.2s ease;
+        }
+
+        .member-card-close-btn:hover {
+            background-color: #ff6b95;
+            color: #ffffff;
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        /* Kartu Member Card Utama */
+        .member-card-box {
+            background-color: #9cbffc;
+            border: 3.5px solid #1a1a1a;
+            border-radius: 26px;
+            box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35), 0 6px 14px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Header Kuning Pastel */
+        .member-card-header {
+            background-color: #fef595;
+            border-bottom: 3px solid #1a1a1a;
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .member-card-star {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+
+        .member-card-title {
+            font-family: 'Patrick Hand', 'Comic Neue', cursive, sans-serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: #1a1a1a;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            line-height: 1;
+            user-select: none;
+        }
+
+        .member-heart-m {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 1px;
+        }
+
+        /* Garis Bunga / Garland Pemisah */
+        .member-card-garland {
+            height: 18px;
+            background: #9cbffc;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 2px 10px;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .member-garland-star {
+            font-size: 13px;
+            line-height: 1;
+            filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.1));
+        }
+
+        /* Badan Kartu Biru Periwinkle dengan Garis Gelombang Lined Paper */
+        .member-card-body {
+            padding: 18px 22px 20px 22px;
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            position: relative;
+            background-color: #9cbffc;
+            background-image:
+                radial-gradient(ellipse at 100% 100%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 50%),
+                repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 19px,
+                    rgba(255, 255, 255, 0.6) 20px,
+                    transparent 21px);
+        }
+
+        /* Frame Foto Oval dengan Border Pink Tebal & Hitam */
+        .member-photo-frame {
+            width: 135px;
+            height: 165px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 6px solid #ff7fa0;
+            box-shadow: 0 0 0 2.5px #1a1a1a, 0 8px 18px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .member-photo-svg,
+        .member-photo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 20%;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+
+        .member-photo-frame:hover .member-photo-img {
+            transform: scale(1.08);
+        }
+
+        /* Daftar Data Teks Member Card */
+        .member-data-list {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-family: 'Patrick Hand', 'Comic Neue', cursive, sans-serif;
+            color: #1a1a1a;
+            position: relative;
+            z-index: 2;
+        }
+
+        .member-data-row {
+            display: flex;
+            align-items: baseline;
+            font-size: 18.5px;
+            line-height: 1.25;
+            font-weight: 700;
+        }
+
+        .member-data-label {
+            width: 96px;
+            letter-spacing: 0.8px;
+            flex-shrink: 0;
+        }
+
+        .member-data-colon {
+            margin-right: 8px;
+        }
+
+        .member-data-val {
+            flex: 1;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            word-break: break-word;
+        }
+
+        /* Watermark Transparan Bulat di Sudut Kanan Bawah Sesuai Gambar */
+        .member-card-watermark {
+            position: absolute;
+            bottom: -18px;
+            right: -18px;
+            width: 75px;
+            height: 75px;
+            background: rgba(255, 255, 255, 0.38);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Footer Info Tambahan Acara 6 */
+        .member-card-extra {
+            background: rgba(255, 255, 255, 0.96);
+            border-top: 2.5px dashed rgba(26, 26, 26, 0.25);
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 12px;
+        }
+
+        /* ========================================================
+           MENU PENCARIAN KECAMATAN (DI BAWAH ZOOM IN / ZOOM OUT)
+           ======================================================== */
+        .leaflet-control-kecamatan-search {
+            margin-top: 10px !important;
+            margin-left: 10px !important;
+            position: relative;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Tombol Kaca Pembesar Default (Collapsed) */
+        .kecamatan-search-toggle-btn {
+            width: 36px;
+            height: 36px;
+            background-color: #ffffff;
+            border: 2px solid rgba(112, 1, 67, 0.25);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #700143;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .kecamatan-search-toggle-btn:hover {
+            background-color: #700143;
+            color: #ffffff;
+            border-color: #700143;
+            transform: scale(1.06);
+            box-shadow: 0 6px 16px rgba(112, 1, 67, 0.3);
+        }
+
+        /* Container Input Pencarian Mengembang (Expanded) */
+        .kecamatan-search-box-expand {
+            background: #ffffff;
+            border: 2px solid #700143;
+            border-radius: 12px;
+            box-shadow: 0 6px 22px rgba(112, 1, 67, 0.22);
+            display: flex;
+            align-items: center;
+            padding: 6px 10px;
+            gap: 8px;
+            width: 250px;
+            animation: searchExpandAnim 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes searchExpandAnim {
+            from {
+                opacity: 0;
+                transform: scale(0.88) translateX(-6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateX(0);
+            }
+        }
+
+        .kecamatan-search-icon {
+            color: #700143;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .kecamatan-search-input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e1b18;
+            background: transparent;
+            font-family: inherit;
+        }
+
+        .kecamatan-search-input::placeholder {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .kecamatan-search-clear-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 2px 4px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.15s ease;
+        }
+
+        .kecamatan-search-clear-btn:hover {
+            color: #700143;
+            background: rgba(112, 1, 67, 0.08);
+        }
+
+        /* Dropdown Hasil Pencarian Kecamatan */
+        .kecamatan-suggestions-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            width: 260px;
+            max-height: 250px;
+            overflow-y: auto;
+            background: #ffffff;
+            border: 1.5px solid rgba(112, 1, 67, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+            padding: 5px;
+            z-index: 1050;
+            display: none;
+        }
+
+        .kecamatan-suggestion-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 7px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12.5px;
+            transition: background 0.15s ease;
+        }
+
+        .kecamatan-suggestion-item:hover,
+        .kecamatan-suggestion-item.active {
+            background-color: #fbf5b7;
+        }
+
+        .kecamatan-sugg-name {
+            font-weight: 700;
+            color: #1e1b18;
+        }
+
+        .kecamatan-sugg-badge {
+            font-size: 10.5px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 6px;
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        @media (max-width: 576px) {
+            .docked-legend-container {
+                bottom: 12px;
+                right: 12px;
+                width: 285px;
+            }
+
+            .custom-scale-widget {
+                bottom: 12px;
+                left: 12px;
+            }
+
+            .kecamatan-search-box-expand {
+                width: 200px;
+            }
+
+            .member-card-body {
+                flex-direction: column;
+                gap: 14px;
+                text-align: center;
+            }
+
+            .member-data-row {
+                justify-content: center;
+                font-size: 16px;
+            }
         }
     </style>
 </head>
 
 <body>
+    <!-- Navbar dengan background #f9f6bd & ikon #700143 -->
+    <nav class="navbar navbar-expand-lg custom-navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"><i class="bi bi-map-fill"></i> WebGIS Flores Timur</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <!-- Menu Legenda di Navbar (Membuka Modal Legenda Lengkap yang Besar) -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#legendModal"
+                            id="navbarLegendLink" title="Tampilkan Legenda Lengkap Peta">
+                            <i class="fa-solid fa-layer-group"></i> Legenda
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://florestimurkab.go.id/" target="_blank">
+                            <i class="bi bi-globe"></i> Flores Timur
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <!-- Pemicu Modal Member Card di Navbar -->
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#infoModal"
+                            title="Tentang Pembuat Peta (About)">
+                            <i class="bi bi-info-circle"></i> About
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ========================================================
+         MODAL ABOUT (SESUAI DESAIN GAMBAR REFERENSI)
+         ======================================================== -->
+    <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered member-card-modal-dialog">
+            <div class="modal-content member-card-modal-content">
+                <!-- Tombol Close Melayang di Sudut Kanan Atas -->
+                <button type="button" class="member-card-close-btn" data-bs-dismiss="modal" aria-label="Close"
+                    title="Tutup">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+                <!-- Box Kartu Member Utama -->
+                <div class="member-card-box">
+                    <!-- 1. Header Kuning Pastel dengan Bintang Teal & Judul ABOUT -->
+                    <div class="member-card-header">
+                        <!-- Bintang Teal Kiri -->
+                        <div class="member-card-star">
+                            <svg viewBox="0 0 100 100" width="100%" height="100%">
+                                <polygon points="50,5 64,36 98,39 72,63 80,97 50,79 20,97 28,63 2,39 36,36"
+                                    fill="#2dd4bf" stroke="#1a1a1a" stroke-width="7" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+
+                        <!-- Judul ABOUT -->
+                        <div class="member-card-title">
+                            <span>ABOUT</span>
+                        </div>
+
+                        <!-- Bintang Teal Kanan -->
+                        <div class="member-card-star">
+                            <svg viewBox="0 0 100 100" width="100%" height="100%">
+                                <polygon points="50,5 64,36 98,39 72,63 80,97 50,79 20,97 28,63 2,39 36,36"
+                                    fill="#2dd4bf" stroke="#1a1a1a" stroke-width="7" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- 2. Garis Garland Bunga Pink Atas -->
+                    <div class="member-card-garland">
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                    </div>
+
+                    <!-- 3. Badan Kartu Biru Periwinkle dengan Garis Gelombang Notepad -->
+                    <div class="member-card-body">
+                        <!-- Frame Foto Oval Pink Tebal dengan Foto Asli Pengguna -->
+                        <div class="member-photo-frame">
+                            <img src="images/profile.jpg" alt="Foto Profil Agillah Azzam" class="member-photo-img" />
+                        </div>
+
+                        <!-- Data Informasi Member Sesuai Informasi yang Sama -->
+                        <div class="member-data-list">
+                            <div class="member-data-row">
+                                <span class="member-data-label">NAME</span>
+                                <span class="member-data-colon">:</span>
+                                <span class="member-data-val">Agillah Azzam H. H.</span>
+                            </div>
+                            <div class="member-data-row">
+                                <span class="member-data-label">PRAKTIKUM</span>
+                                <span class="member-data-colon">:</span>
+                                <span class="member-data-val">PG Web</span>
+                            </div>
+                            <div class="member-data-row">
+                                <span class="member-data-label">ACARA</span>
+                                <span class="member-data-colon">:</span>
+                                <span class="member-data-val">Acara 6 (Leaflet)</span>
+                            </div>
+                            <div class="member-data-row">
+                                <span class="member-data-label">KAJIAN</span>
+                                <span class="member-data-colon">:</span>
+                                <span class="member-data-val">Flores Timur, NTT</span>
+                            </div>
+                            <div class="member-data-row">
+                                <span class="member-data-label">SUMBER</span>
+                                <span class="member-data-colon">:</span>
+                                <span class="member-data-val">GeoJSON Flotim</span>
+                            </div>
+                        </div>
+
+                        <!-- Watermark Transparan Bulat di Kanan Bawah Sesuai Gambar -->
+                        <div class="member-card-watermark"></div>
+                    </div>
+
+                    <!-- 4. Garis Garland Bunga Pink Bawah -->
+                    <div class="member-card-garland">
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                        <span class="member-garland-star">🌸</span>
+                    </div>
+
+                    <!-- 5. Footer Info Lengkap Praktikum Pemrograman Geospasial Web -->
+                    <div class="member-card-extra">
+                        <div>
+                            <div class="fw-bold text-dark" style="font-size: 11.5px;">
+                                <i class="fa-solid fa-graduation-cap me-1" style="color: #700143;"></i> Praktikum
+                                Pemrograman Geospasial Web
+                            </div>
+                            <div class="text-secondary" style="font-size: 10.5px;">
+                                Acara 6 &bull; Pembuatan Peta Web Menggunakan Leaflet & Bootstrap
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-dark rounded-pill px-3"
+                            data-bs-dismiss="modal" style="font-size: 11px; font-weight: 700;">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================
+         MODAL LEGENDA BESAR (TEMA PERANGKO / STAMP)
+         ======================================================== -->
+    <div class="modal fade" id="legendModal" tabindex="-1" aria-labelledby="legendModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-stamp-dialog">
+            <div class="modal-content modal-stamp-content">
+                <!-- Stage Bebas Masking agar Lakban dan Stiker tidak terpotong -->
+                <div class="stamp-stage">
+                    <!-- Lakban Putih "Legenda" di Pojok Kanan Atas -->
+                    <div class="stamp-tape">
+                        <span class="stamp-tape-text">Legenda</span>
+                    </div>
+
+                    <!-- Stiker Bintang / Segel Merah di Pojok Kiri Bawah -->
+                    <div class="stamp-starburst">
+                        <svg viewBox="0 0 100 100" width="100%" height="100%">
+                            <polygon
+                                points="50,2 62,15 79,8 84,25 100,36 94,54 99,72 82,80 76,98 58,92 42,100 28,87 11,85 17,67 2,52 14,38 7,20 25,15 36,2"
+                                fill="#ef4444" stroke="#ffffff" stroke-width="4.5" />
+                            <text x="50" y="55" font-family="'Plus Jakarta Sans', sans-serif" font-size="16"
+                                font-weight="800" fill="#ffffff" text-anchor="middle"
+                                dominant-baseline="middle">FLOTIM</text>
+                        </svg>
+                    </div>
+
+                    <!-- Kotak Luar Perangko (Warna Oranye dengan Masking Gigi Perangko) -->
+                    <div class="stamp-wrapper">
+                        <!-- Tombol Tutup Modal -->
+                        <button type="button" class="stamp-close-btn" data-bs-dismiss="modal" aria-label="Close"
+                            title="Tutup Legenda">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+
+                        <!-- Kertas Dalam Perangko (Kuning Pastel) -->
+                        <div class="stamp-sheet">
+                            <!-- BAGIAN 1: TITIK TOPONIMI -->
+                            <div class="stamp-section-title">
+                                <i class="fa-solid fa-location-dot"></i> TITIK TOPONIMI
+                            </div>
+                            <div class="stamp-section-line"></div>
+                            <div class="stamp-app-grid">
+                                <!-- Gunung -->
+                                <div class="stamp-app-card">
+                                    <div class="stamp-app-icon" style="background: #1e1b18;">
+                                        <i class="fa-solid fa-mountain" style="color: #ef4444; font-size: 22px;"></i>
+                                    </div>
+                                    <div class="stamp-app-name">Gunung</div>
+                                    <div class="stamp-app-sub">Bentang Alam</div>
+                                </div>
+                                <!-- Tanjung -->
+                                <div class="stamp-app-card">
+                                    <div class="stamp-app-icon" style="background: #1e1b18;">
+                                        <i class="fa-solid fa-anchor" style="color: #38bdf8; font-size: 22px;"></i>
+                                    </div>
+                                    <div class="stamp-app-name">Tanjung</div>
+                                    <div class="stamp-app-sub">Pesisir Pantai</div>
+                                </div>
+                                <!-- Teluk -->
+                                <div class="stamp-app-card">
+                                    <div class="stamp-app-icon" style="background: #1e1b18;">
+                                        <i class="fa-solid fa-water" style="color: #2dd4bf; font-size: 22px;"></i>
+                                    </div>
+                                    <div class="stamp-app-name">Teluk</div>
+                                    <div class="stamp-app-sub">Perairan Laut</div>
+                                </div>
+                                <!-- Toponimi -->
+                                <div class="stamp-app-card">
+                                    <div class="stamp-app-icon" style="background: #1e1b18;">
+                                        <i class="fa-solid fa-tag" style="color: #4ade80; font-size: 22px;"></i>
+                                    </div>
+                                    <div class="stamp-app-name">Toponimi</div>
+                                    <div class="stamp-app-sub">Titik Wilayah</div>
+                                </div>
+                            </div>
+
+                            <!-- BAGIAN 2: JUMLAH PENDUDUK -->
+                            <div class="stamp-section-title">
+                                <i class="fa-solid fa-users"></i> JUMLAH PENDUDUK
+                            </div>
+                            <div class="stamp-section-line"></div>
+                            <ul class="stamp-bullet-list">
+                                <li class="stamp-bullet-item">
+                                    <span class="stamp-bullet-dot" style="background-color: #eab0c8;"></span>
+                                    <span>&le; 12.000 Jiwa <span class="stamp-item-note">(Klasifikasi
+                                            Rendah)</span></span>
+                                </li>
+                                <li class="stamp-bullet-item">
+                                    <span class="stamp-bullet-dot" style="background-color: #c9d863;"></span>
+                                    <span>12.001 - 24.000 Jiwa <span class="stamp-item-note">(Klasifikasi
+                                            Sedang)</span></span>
+                                </li>
+                                <li class="stamp-bullet-item">
+                                    <span class="stamp-bullet-dot" style="background-color: #6e1e3b;"></span>
+                                    <span>&gt; 24.000 Jiwa <span class="stamp-item-note">(Klasifikasi
+                                            Tinggi)</span></span>
+                                </li>
+                            </ul>
+
+                            <!-- BAGIAN 3: JARINGAN JALAN -->
+                            <div class="stamp-section-title">
+                                <i class="fa-solid fa-route"></i> JARINGAN JALAN
+                            </div>
+                            <div class="stamp-section-line"></div>
+                            <div class="stamp-road-grid">
+                                <div class="stamp-road-item">
+                                    <div class="stamp-road-line">
+                                        <svg width="44" height="12">
+                                            <line x1="2" y1="6" x2="42" y2="6" stroke="#dc2626" stroke-width="3.5"
+                                                stroke-linecap="round" />
+                                        </svg>
+                                    </div>
+                                    <span><strong>Jalan Provinsi</strong> <span class="stamp-item-note">(Garis Merah
+                                            Solid)</span></span>
+                                </div>
+                                <div class="stamp-road-item">
+                                    <div class="stamp-road-line">
+                                        <svg width="44" height="12">
+                                            <line x1="2" y1="6" x2="42" y2="6" stroke="#dc2626" stroke-width="2"
+                                                stroke-dasharray="8, 5" stroke-linecap="round" />
+                                        </svg>
+                                    </div>
+                                    <span><strong>Jalan Kabupaten</strong> <span class="stamp-item-note">(Putus-Putus
+                                            Sedang)</span></span>
+                                </div>
+                                <div class="stamp-road-item">
+                                    <div class="stamp-road-line">
+                                        <svg width="44" height="12">
+                                            <line x1="2" y1="6" x2="42" y2="6" stroke="#dc2626" stroke-width="1.2"
+                                                stroke-dasharray="3, 3" stroke-linecap="round" />
+                                        </svg>
+                                    </div>
+                                    <span><strong>Jalan Lain</strong> <span class="stamp-item-note">(Putus-Putus
+                                            Halus)</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================
+         LEGENDA KOMPAK & SEDERHANA DI POJOK KANAN BAWAH (DOCKED)
+         ======================================================== -->
+    <div id="dockedLegendContainer" class="compact-legend-container">
+        <!-- Tombol Pill saat Minimized -->
+        <div class="compact-legend-pill" id="stampMinimizedPill" title="Klik untuk membuka Legenda Peta">
+            <i class="fa-solid fa-layer-group"></i>
+            <span>Legenda</span>
+        </div>
+
+        <!-- Kartu Legenda Kompak -->
+        <div class="compact-legend-card" id="compactLegendCard">
+            <!-- Header Kartu -->
+            <div class="compact-legend-header" id="compactLegendHeader" title="Klik untuk perkecil/perbesar legenda">
+                <div class="compact-legend-title">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>Legenda</span>
+                </div>
+                <button type="button" class="compact-legend-min-btn" id="stampMinimizeBtn" title="Kecilkan Legenda">
+                    <i class="fa-solid fa-minus" id="stampMinIcon"></i>
+                </button>
+            </div>
+
+            <!-- Konten Legenda Sederhana -->
+            <div class="compact-legend-body">
+                <!-- 1. Toponimi (2x2 Grid) -->
+                <div class="compact-legend-group">
+                    <div class="compact-group-label">Titik Toponimi</div>
+                    <div class="compact-toponimi-grid">
+                        <div class="compact-topo-item">
+                            <i class="fa-solid fa-mountain" style="color: #ef4444;"></i>
+                            <span>Gunung</span>
+                        </div>
+                        <div class="compact-topo-item">
+                            <i class="fa-solid fa-anchor" style="color: #0284c7;"></i>
+                            <span>Tanjung</span>
+                        </div>
+                        <div class="compact-topo-item">
+                            <i class="fa-solid fa-water" style="color: #0d9488;"></i>
+                            <span>Teluk</span>
+                        </div>
+                        <div class="compact-topo-item">
+                            <i class="fa-solid fa-tag" style="color: #16a34a;"></i>
+                            <span>Toponimi</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Jumlah Penduduk -->
+                <div class="compact-legend-group">
+                    <div class="compact-group-label">Jumlah Penduduk</div>
+                    <div class="compact-list">
+                        <div class="compact-list-row">
+                            <span class="compact-dot" style="background-color: #eab0c8;"></span>
+                            <span>&le; 12.000 jiwa</span>
+                        </div>
+                        <div class="compact-list-row">
+                            <span class="compact-dot" style="background-color: #c9d863;"></span>
+                            <span>12.001 - 24.000 jiwa</span>
+                        </div>
+                        <div class="compact-list-row">
+                            <span class="compact-dot" style="background-color: #6e1e3b;"></span>
+                            <span>&gt; 24.000 jiwa</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Jaringan Jalan -->
+                <div class="compact-legend-group mb-0">
+                    <div class="compact-group-label">Jaringan Jalan</div>
+                    <div class="compact-list">
+                        <div class="compact-list-row">
+                            <div class="compact-road-line">
+                                <svg width="24" height="6">
+                                    <line x1="0" y1="3" x2="24" y2="3" stroke="#dc2626" stroke-width="3"
+                                        stroke-linecap="round" />
+                                </svg>
+                            </div>
+                            <span>Jalan Provinsi</span>
+                        </div>
+                        <div class="compact-list-row">
+                            <div class="compact-road-line">
+                                <svg width="24" height="6">
+                                    <line x1="0" y1="3" x2="24" y2="3" stroke="#dc2626" stroke-width="2"
+                                        stroke-dasharray="5, 3" stroke-linecap="round" />
+                                </svg>
+                            </div>
+                            <span>Jalan Kabupaten</span>
+                        </div>
+                        <div class="compact-list-row">
+                            <div class="compact-road-line">
+                                <svg width="24" height="6">
+                                    <line x1="0" y1="3" x2="24" y2="3" stroke="#dc2626" stroke-width="1.2"
+                                        stroke-dasharray="2.5, 2" stroke-linecap="round" />
+                                </svg>
+                            </div>
+                            <span>Jalan Lain</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================
+         WIDGET SKALA PETA (POJOK KIRI BAWAH - BACKGROUND #700143)
+         ======================================================== -->
+    <div id="mapScaleWidget" class="custom-scale-widget">
+        <div class="custom-scale-card">
+            <div class="custom-scale-header">
+                <span class="custom-scale-title">
+                    <i class="fa-solid fa-ruler-horizontal"></i> SKALA
+                </span>
+                <span class="custom-scale-ratio-badge" id="scaleRatioBadge">1 : 100.000</span>
+            </div>
+            <div class="custom-scale-bar-row">
+                <div class="custom-scale-bar-track">
+                    <div class="custom-scale-bar-fill" id="scaleWidgetBar"></div>
+                </div>
+                <span class="custom-scale-dist-text" id="scaleDistanceVal">10 km</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Preview Gambar Toponimi (HD Preview) -->
+    <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-labelledby="modalImageTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content"
+                style="border-radius: 20px; overflow: hidden; border: none; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35);">
+                <div class="modal-header border-0 pb-2 pt-3 px-4" style="background: #ffffff;">
+                    <div>
+                        <span id="modalImageBadge"
+                            class="badge rounded-pill bg-danger-subtle text-danger px-3 py-1 mb-1 fw-bold"
+                            style="font-size: 11px;"></span>
+                        <h5 class="modal-title fw-bold text-dark" id="modalImageTitle" style="letter-spacing: -0.02em;">
+                        </h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3 text-center" style="background: #f8fafc;">
+                    <div
+                        style="border-radius: 14px; overflow: hidden; box-shadow: 0 6px 24px rgba(0,0,0,0.14); background: #000; display: inline-block; max-width: 100%;">
+                        <img id="modalImageSrc" src="" alt="Dokumentasi Toponimi"
+                            style="max-width: 100%; max-height: 70vh; object-fit: contain; display: block; margin: 0 auto;" />
+                    </div>
+                    <p id="modalImageCaption" class="text-secondary small mt-3 mb-1 fw-medium"></p>
+                </div>
+                <div class="modal-footer border-0 pt-0 pb-3 px-4" style="background: #f8fafc;">
+                    <button type="button" class="btn btn-dark btn-sm rounded-pill px-3"
+                        data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PERBAIKAN 2: div map yang dobel sudah dihapus, sisa satu -->
     <div id="map"></div>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -33,12 +1854,26 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
+    <!-- Leaflet.awesome-markers JS -->
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
+
+    <!-- PERBAIKAN 3: Bootstrap JS diperbaiki ke versi 5.3.3 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
         // Inisialisasi peta
         var map = L.map("map").setView([-8.3555810, 122.9935381], 10);
 
-        // Tile Layer Base Map
-        var basemap = L.tileLayer(
+        // Custom panes untuk mengatur urutan tumpukan layer (z-index)
+        map.createPane('pendudukPane');
+        map.getPane('pendudukPane').style.zIndex = 400;
+
+        map.createPane('jalanPane');
+        map.getPane('jalanPane').style.zIndex = 450;
+
+        // Tile Layer Base Maps (OpenStreetMap & Esri Satellite)
+        var osm = L.tileLayer(
             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             {
                 attribution:
@@ -46,42 +1881,262 @@
             }
         );
 
-        // Menambahkan basemap ke dalam peta
-        basemap.addTo(map);
+        var esriSatellite = L.tileLayer(
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            {
+                attribution:
+                    'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+                maxZoom: 19
+            }
+        );
 
-        // GeoJSON Point Toponimi
+        // Set OpenStreetMap sebagai basemap default aktif
+        esriSatellite.addTo(map);
+
+        // Mencegah interaksi dalam popup tertembus ke peta
+        map.on('popupopen', function (e) {
+            if (e.popup && e.popup._container) {
+                L.DomEvent.disableClickPropagation(e.popup._container);
+            }
+        });
+
+        // Helper fungsi sanitasi teks untuk keamanan
+        function escapeHtml(text) {
+            if (!text) return "";
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Helper pembuatan konten popup sesuai desain inspirasi (Modern Card)
+        function createInspoPopup(feature) {
+            var props = feature.properties || {};
+            var geom = feature.geometry || { coordinates: [0, 0] };
+            var lng = geom.coordinates[0];
+            var lat = geom.coordinates[1];
+            var latFormatted = Number(lat).toFixed(4) + "°";
+            var lngFormatted = Number(lng).toFixed(4) + "°";
+            var latFull = Number(lat).toFixed(6);
+            var lngFull = Number(lng).toFixed(6);
+            var fullCoords = latFull + ", " + lngFull;
+
+            var unsur = props.NAMA_UNSUR || "Toponimi";
+            var unsurLower = unsur.toLowerCase();
+            var title = props.TOPONIMI || "Titik Toponimi";
+            var objectId = props.OBJECTID || "0";
+
+            var badgeIcon = "fa-solid fa-tag text-success";
+            var badgeLabel = unsur;
+            var typeDesc = "Toponimi Geografis";
+
+            if (unsurLower.includes("gunung")) {
+                badgeIcon = "fa-solid fa-mountain text-danger";
+                badgeLabel = "Gunung";
+                typeDesc = "Bentang Alam Gunung";
+            } else if (unsurLower.includes("tanjung")) {
+                badgeIcon = "fa-solid fa-anchor text-primary";
+                badgeLabel = "Tanjung";
+                typeDesc = "Wilayah Pesisir Tanjung";
+            } else if (unsurLower.includes("teluk")) {
+                badgeIcon = "fa-solid fa-water text-info";
+                badgeLabel = "Teluk";
+                typeDesc = "Perairan Teluk";
+            }
+
+            // Visual bagian kanan header: Foto jika ada, atau ilustrasi gradient jika tidak ada
+            var visualHtml = "";
+            if (props.image) {
+                var safeImg = escapeHtml(props.image);
+                var safeTitle = escapeHtml(title);
+                visualHtml = `
+                    <div class="inspo-top-visual">
+                        <div class="inspo-img-thumb-wrap" onclick="openImageModal('images/${safeImg}', '${safeTitle}', '${badgeLabel}')" title="Klik untuk perbesar foto">
+                            <img src="images/${safeImg}" alt="${safeTitle}" class="inspo-img-thumb">
+                            <div class="inspo-img-badge-overlay">
+                                <i class="fa-solid fa-magnifying-glass-plus"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                var gradId = "flowerGrad_" + objectId;
+                var glowId = "flowerGlow_" + objectId;
+                visualHtml = `
+                    <div class="inspo-top-visual">
+                        <div class="inspo-graphic-art" title="Toponimi Geografis">
+                            <svg viewBox="0 0 100 100" class="inspo-flower-svg">
+                                <defs>
+                                    <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#b18cfc" />
+                                        <stop offset="42%" stop-color="#f43f8e" />
+                                        <stop offset="100%" stop-color="#fb923c" />
+                                    </linearGradient>
+                                    <filter id="${glowId}" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#f43f8e" flood-opacity="0.32"/>
+                                    </filter>
+                                </defs>
+                                <path d="M 50,8 C 57,8 61,16 67,18 C 73,20 81,17 85,23 C 89,29 85,36 88,42 C 91,48 98,53 97,60 C 96,67 88,71 85,77 C 82,83 83,91 76,94 C 69,97 64,89 57,90 C 50,91 46,99 39,97 C 32,95 33,87 27,83 C 21,79 13,81 9,75 C 5,69 11,63 9,56 C 7,49 0,44 1,37 C 2,30 10,27 13,21 C 16,15 15,7 22,4 C 29,1 34,9 41,8 Z" fill="url(#${gradId})" filter="url(#${glowId})"/>
+                                <path d="M 50,33 Q 50,49 33,49 Q 50,49 50,65 Q 50,49 67,49 Q 50,49 50,33 Z" fill="#ffffff" opacity="0.95"/>
+                            </svg>
+                        </div>
+                    </div>
+                `;
+            }
+
+            var html = `
+                <div class="inspo-card-container">
+                    <!-- Bagian Header (Kotak Abu Lembut) -->
+                    <div class="inspo-top-box">
+                        <div class="inspo-top-info">
+                            <span class="inspo-pill-badge">
+                                <i class="${badgeIcon}"></i> ${badgeLabel}
+                            </span>
+                            <h4 class="inspo-card-title">${escapeHtml(title)}</h4>
+                            <p class="inspo-card-subtitle">Kab. Flores Timur, NTT</p>
+                        </div>
+                        ${visualHtml}
+                    </div>
+
+                    <!-- Bagian Tengah (Informasi Detail Objek) -->
+                    <div class="inspo-middle-section">
+                        <div class="inspo-sec-heading">Informasi Detail:</div>
+                        <div class="inspo-features-list">
+                            <div class="inspo-feature-row">
+                                <div class="inspo-feature-icon"><i class="fa-solid fa-bolt"></i></div>
+                                <div class="inspo-feature-text">Kategori: <strong>${escapeHtml(unsur)}</strong></div>
+                            </div>
+                            <div class="inspo-feature-row">
+                                <div class="inspo-feature-icon"><i class="fa-solid fa-crown"></i></div>
+                                <div class="inspo-feature-text">Tipe Unsur: <strong>${typeDesc}</strong></div>
+                            </div>
+                            <div class="inspo-feature-row">
+                                <div class="inspo-feature-icon"><i class="fa-solid fa-location-dot"></i></div>
+                                <div class="inspo-feature-text">Koordinat: <strong>${latFormatted}, ${lngFormatted}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bagian Bawah (Aksi Salin & Google Maps) -->
+                    <div class="inspo-bottom-section">
+                        <div class="inspo-sec-heading">Tautan & Koordinat:</div>
+                        <div class="inspo-action-bar">
+                            <div class="inspo-action-left" title="Koordinat: ${fullCoords}">
+                                <i class="fa-solid fa-link inspo-action-icon"></i>
+                                <span class="inspo-action-coords">${fullCoords}</span>
+                            </div>
+                            <div class="inspo-action-right">
+                                <button type="button" class="inspo-copy-btn" onclick="copyCoordinates('${fullCoords}', this)" title="Salin koordinat">
+                                    Salin
+                                </button>
+                                <a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" rel="noopener noreferrer" class="inspo-maps-link" title="Buka di Google Maps">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        // Fungsi salin koordinat ke clipboard dengan feedback visual
+        function copyCoordinates(coords, btn) {
+            function showSuccess() {
+                var origText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Tersalin';
+                btn.classList.add('copied');
+                setTimeout(function () {
+                    btn.innerHTML = origText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(coords).then(showSuccess).catch(function () {
+                    fallbackCopy(coords, showSuccess);
+                });
+            } else {
+                fallbackCopy(coords, showSuccess);
+            }
+        }
+
+        function fallbackCopy(text, callback) {
+            var textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                if (callback) callback();
+            } catch (err) {
+                console.error('Gagal menyalin:', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // Fungsi membuka modal foto ukuran penuh
+        function openImageModal(imgSrc, title, badge) {
+            $('#modalImageTitle').text(title);
+            $('#modalImageBadge').text(badge);
+            $('#modalImageSrc').attr('src', imgSrc);
+            $('#modalImageCaption').text('Foto Lapangan / Dokumentasi: ' + title + ', Kab. Flores Timur');
+            var modalEl = document.getElementById('imagePreviewModal');
+            var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+
+        // GeoJSON Point Toponimi dengan Leaflet.awesome-markers
         var toponimi = L.geoJSON(null, {
-
-            // Style
             pointToLayer: function (feature, latlng) {
+                var unsur = (feature.properties.NAMA_UNSUR || "").toLowerCase();
+                var markerColor = "green";
+                var iconName = "tag";
+
+                if (unsur.includes("gunung")) {
+                    markerColor = "red";
+                    iconName = "mountain";
+                } else if (unsur.includes("tanjung")) {
+                    markerColor = "blue";
+                    iconName = "anchor";
+                } else if (unsur.includes("teluk")) {
+                    markerColor = "cadetblue";
+                    iconName = "water";
+                } else {
+                    markerColor = "green";
+                    iconName = "tag";
+                }
+
                 return L.marker(latlng, {
-                    icon: L.icon({
-                        iconUrl: "images/home_marker.png", // icon marker
-                        iconSize: [48, 48], // ukuran icon
-                        iconAnchor: [24, 48], // posisi icon terhadap titik (point)
-                        popupAnchor: [0, -48], // posisi popup terhadap icon
-                        tooltipAnchor: [-16, -30], // posisi tooltip terhadap icon
+                    icon: L.AwesomeMarkers.icon({
+                        icon: iconName,
+                        prefix: "fa",
+                        markerColor: markerColor,
+                        iconColor: "white",
                     }),
                 });
             },
-
-            // onEachFeature
             onEachFeature: function (feature, layer) {
-                // variable popup content
-                var gambar = feature.properties.image ?
-                    "<br><img src='images/" + feature.properties.image + "' width='200'>" : "";
+                var popup_content = createInspoPopup(feature);
 
-                var popup_content = "Nama: " + feature.properties.TOPONIMI + "<br>" +
-                    "Koordinat: " + feature.geometry.coordinates[1] + ", " +
-                    feature.geometry.coordinates[0] + "<br>" + gambar;
-
+                layer.bindPopup(popup_content, {
+                    className: "inspo-leaflet-popup",
+                    maxWidth: 320,
+                    minWidth: 290,
+                    closeButton: true,
+                    autoPanPadding: [20, 20],
+                });
 
                 layer.on({
-                    click: function (e) {
-                        toponimi.bindPopup(popup_content);
-                    },
                     mouseover: function (e) {
-                        toponimi.bindTooltip(feature.properties.TOPONIMI, {
+                        layer.bindTooltip(feature.properties.TOPONIMI, {
                             direction: "left",
                             sticky: true,
                         });
@@ -91,104 +2146,649 @@
         });
 
         $.getJSON("geoJSON_JUMLAH_PENDUDUK/toponimi.geojson", function (data) {
-            toponimi.addData(data); // Menambahkan data ke dalam GeoJSON Point Toponimi
-            map.addLayer(toponimi); // Menambahkan GeoJSON Point Toponimi ke dalam peta
+            toponimi.addData(data);
+            map.addLayer(toponimi);
         });
+
+        // Helper pembuatan konten popup untuk layer Jalan (Gaya Modern Card)
+        function createJalanPopup(feature, layerIndex) {
+            var props = feature.properties || {};
+            var unsur = props.NAMA_UNSUR || "Jalan";
+            var unsurLower = unsur.toLowerCase();
+            var panjang = props.panjang_km != null ? Number(props.panjang_km) : 0;
+            var panjangFormatted = panjang.toFixed(2) + " km";
+            var panjangMeter = Math.round(panjang * 1000).toLocaleString('id-ID') + " m";
+            var objectId = props.OBJECTID || "0";
+            var pulau = props.PULAU || "Flores Timur";
+
+            var badgeIcon = "fa-solid fa-road text-secondary";
+            var badgeLabel = unsur;
+            var typeDesc = "Akses Lingkungan / Jalan Lain";
+            var lineTypeDesc = "Putus-Putus Halus (0.5px)";
+            var gradStart = "#f43f5e";
+            var gradEnd = "#fb923c";
+
+            if (unsurLower.includes("propinsi") || unsurLower.includes("provinsi")) {
+                badgeIcon = "fa-solid fa-road text-danger";
+                badgeLabel = "Jalan Provinsi";
+                typeDesc = "Jalur Utama Transportasi Provinsi";
+                lineTypeDesc = "Garis Merah Solid (3px)";
+                gradStart = "#dc2626";
+                gradEnd = "#ea580c";
+            } else if (unsurLower.includes("kabupaten")) {
+                badgeIcon = "fa-solid fa-road text-warning";
+                badgeLabel = "Jalan Kabupaten";
+                typeDesc = "Jalur Penghubung Antar Wilayah";
+                lineTypeDesc = "Putus-Putus Sedang (1.5px)";
+                gradStart = "#ea580c";
+                gradEnd = "#f59e0b";
+            }
+
+            var gradId = "roadGrad_" + Math.round(objectId);
+            var glowId = "roadGlow_" + Math.round(objectId);
+
+            var visualHtml = `
+                <div class="inspo-top-visual">
+                    <div class="inspo-graphic-art" title="${escapeHtml(unsur)}">
+                        <svg viewBox="0 0 100 100" class="inspo-flower-svg">
+                            <defs>
+                                <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="${gradStart}" />
+                                    <stop offset="100%" stop-color="${gradEnd}" />
+                                </linearGradient>
+                                <filter id="${glowId}" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="${gradStart}" flood-opacity="0.32"/>
+                                </filter>
+                            </defs>
+                            <rect x="8" y="8" width="84" height="84" rx="22" fill="url(#${gradId})" filter="url(#${glowId})" />
+                            <path d="M 28,82 Q 40,50 50,50 T 72,18" stroke="#ffffff" stroke-width="13" fill="none" stroke-linecap="round" opacity="0.92" />
+                            <path d="M 28,82 Q 40,50 50,50 T 72,18" stroke="${gradStart}" stroke-width="2.5" stroke-dasharray="5,4" fill="none" stroke-linecap="round" />
+                            <path d="M 72,28 Q 72,36 64,36 Q 72,36 72,44 Q 72,36 80,36 Q 72,36 72,28 Z" fill="#ffffff" opacity="0.95"/>
+                        </svg>
+                    </div>
+                </div>
+            `;
+
+            var copyText = "Ruas " + unsur + " (Panjang: " + panjangFormatted + ") - Kab. Flores Timur";
+
+            var html = `
+                <div class="inspo-card-container">
+                    <!-- Bagian Header (Kotak Abu Lembut) -->
+                    <div class="inspo-top-box">
+                        <div class="inspo-top-info">
+                            <span class="inspo-pill-badge">
+                                <i class="${badgeIcon}"></i> ${badgeLabel}
+                            </span>
+                            <h4 class="inspo-card-title">${escapeHtml(unsur)}</h4>
+                            <p class="inspo-card-subtitle">Kab. Flores Timur, NTT</p>
+                        </div>
+                        ${visualHtml}
+                    </div>
+
+                    <!-- Bagian Tengah (Informasi Detail Ruas) -->
+                    <div class="inspo-middle-section">
+                        <div class="inspo-sec-heading">Informasi Ruas Jalan:</div>
+                        <div class="inspo-features-list">
+                            <div class="inspo-feature-row">
+                                <div class="inspo-feature-icon"><i class="fa-solid fa-ruler-combined"></i></div>
+                                <div class="inspo-feature-text">Panjang: <strong>${panjangFormatted}</strong> (${panjangMeter})</div>
+                            </div>
+                            <div class="inspo-feature-row">
+                                <div class="inspo-feature-icon"><i class="fa-solid fa-bezier-curve"></i></div>
+                                <div class="inspo-feature-text">Tipe Garis: <strong>${lineTypeDesc}</strong></div>
+                            </div>
+                            <div class="inspo-feature-row">
+                                <div class="inspo-feature-icon"><i class="fa-solid fa-hashtag"></i></div>
+                                <div class="inspo-feature-text">ID Ruas: <strong>#${objectId}</strong> (${pulau})</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bagian Bawah (Aksi Salin & Zoom ke Ruas) -->
+                    <div class="inspo-bottom-section">
+                        <div class="inspo-sec-heading">Data & Aksi:</div>
+                        <div class="inspo-action-bar">
+                            <div class="inspo-action-left" title="${copyText}">
+                                <i class="fa-solid fa-route inspo-action-icon"></i>
+                                <span class="inspo-action-coords">${panjangFormatted} &bull; ${escapeHtml(unsur)}</span>
+                            </div>
+                            <div class="inspo-action-right">
+                                <button type="button" class="inspo-copy-btn" onclick="copyCoordinates('${copyText}', this)" title="Salin info jalan">
+                                    Salin
+                                </button>
+                                <button type="button" class="inspo-maps-link" onclick="zoomToJalan(${layerIndex})" title="Fokuskan ke ruas jalan di peta">
+                                    <i class="fa-solid fa-crosshairs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        // Helper pembuatan konten popup untuk layer Jumlah Penduduk (Gaya Modern Card)
+        function createPendudukPopup(feature, layerIndex) {
+            var props = feature.properties || {};
+            var kecamatan = props.WADMKC || "Kecamatan";
+            var penduduk = props.Sheet1_Penduduk != null ? Number(props.Sheet1_Penduduk) : 0;
+            var pendudukFormatted = penduduk.toLocaleString('id-ID') + " Jiwa";
+            var objectId = props.OBJECTID || "0";
+            var desa = props.NAMOBJ || "-";
+
+            var badgeIcon = "fa-solid fa-people-roof text-secondary";
+            var badgeLabel = "≤ 12.000 Jiwa";
+            var klasifikasi = "Rendah (≤ 12.000 Jiwa)";
+            var gradStart = "#f472b6";
+            var gradEnd = "#fb7185";
+
+            if (penduduk <= 12000) {
+                badgeIcon = "fa-solid fa-people-roof text-secondary";
+                badgeLabel = "Rendah (≤ 12k)";
+                klasifikasi = "Klasifikasi Rendah (≤ 12.000)";
+                gradStart = "#eab0c8";
+                gradEnd = "#ec4899";
+            } else if (penduduk > 12000 && penduduk <= 24000) {
+                badgeIcon = "fa-solid fa-people-group text-success";
+                badgeLabel = "Sedang (12k - 24k)";
+                klasifikasi = "Klasifikasi Sedang (12.001 - 24.000)";
+                gradStart = "#c9d863";
+                gradEnd = "#84cc16";
+            } else {
+                badgeIcon = "fa-solid fa-city text-danger";
+                badgeLabel = "Tinggi (> 24k)";
+                klasifikasi = "Klasifikasi Tinggi (> 24.000)";
+                gradStart = "#6e1e3b";
+                gradEnd = "#9f1239";
+            }
+
+            var gradId = "popGrad_" + Math.round(objectId);
+            var glowId = "popGlow_" + Math.round(objectId);
+
+            var visualHtml = `
+                <div class="inspo-top-visual">
+                    <div class="inspo-graphic-art" title="Statistik Penduduk">
+                        <svg viewBox="0 0 100 100" class="inspo-flower-svg">
+                            <defs>
+                                <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="${gradStart}" />
+                                    <stop offset="100%" stop-color="${gradEnd}" />
+                                </linearGradient>
+                                <filter id="${glowId}" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="${gradStart}" flood-opacity="0.32"/>
+                                </filter>
+                            </defs>
+                            <rect x="8" y="8" width="84" height="84" rx="22" fill="url(#${gradId})" filter="url(#${glowId})" />
+                            <circle cx="50" cy="36" r="11" fill="#ffffff" opacity="0.95"/>
+                            <path d="M 28,68 C 28,52 38,50 50,50 C 62,50 72,52 72,68 Z" fill="#ffffff" opacity="0.95"/>
+                            <path d="M 74,24 Q 74,32 66,32 Q 74,32 74,40 Q 74,32 82,32 Q 74,32 74,24 Z" fill="#ffffff" opacity="0.95"/>
+                        </svg>
+                    </div>
+                </div>
+            `;
+
+            var copyText = "Kecamatan " + kecamatan + ": " + pendudukFormatted + " (" + klasifikasi + ")";
+
+            var html = `
+                <div class="inspo-card-container">
+                    <!-- Bagian Header (Kotak Abu Lembut) -->
+                    <div class="inspo-top-box">
+                        <div class="inspo-top-info">
+                            <span class="inspo-pill-badge">
+                                <i class="${badgeIcon}"></i> ${badgeLabel}
+                            </span>
+                            <h4 class="inspo-card-title">Kec. ${escapeHtml(kecamatan)}</h4>
+                            <p class="inspo-card-subtitle">Kab. Flores Timur, NTT</p>
+                        </div>
+                        ${visualHtml}
+                    </div>
+
+                    <!-- Bagian Tengah (Informasi Demografi) -->
+                    <div class="inspo-middle-section">
+                        <div class="inspo-sec-heading">Informasi Demografi:</div>
+                        <div class="inspo-features-list">
+                            <div class="inspo-feature-row">
+                                <div class="inspo-feature-icon"><i class="fa-solid fa-users"></i></div>
+                                <div class="inspo-feature-text">Jumlah Penduduk: <strong>${pendudukFormatted}</strong></div>
+                            </div>
+                            <div class="inspo-feature-row">
+                                <div class="inspo-feature-icon"><i class="fa-solid fa-chart-simple"></i></div>
+                                <div class="inspo-feature-text">Kategori: <strong>${klasifikasi}</strong></div>
+                            </div>
+                            <div class="inspo-feature-row">
+                                <div class="inspo-feature-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+                                <div class="inspo-feature-text">Desa/Objek: <strong>${escapeHtml(desa)}</strong> (ID #${objectId})</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bagian Bawah (Aksi Salin & Zoom ke Kecamatan) -->
+                    <div class="inspo-bottom-section">
+                        <div class="inspo-sec-heading">Data & Aksi:</div>
+                        <div class="inspo-action-bar">
+                            <div class="inspo-action-left" title="${copyText}">
+                                <i class="fa-solid fa-chart-pie inspo-action-icon"></i>
+                                <span class="inspo-action-coords">${pendudukFormatted} &bull; ${escapeHtml(kecamatan)}</span>
+                            </div>
+                            <div class="inspo-action-right">
+                                <button type="button" class="inspo-copy-btn" onclick="copyCoordinates('${copyText}', this)" title="Salin data penduduk">
+                                    Salin
+                                </button>
+                                <button type="button" class="inspo-maps-link" onclick="zoomToPenduduk(${layerIndex})" title="Fokuskan ke kecamatan di peta">
+                                    <i class="fa-solid fa-crosshairs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        // Penyimpanan referensi layer jalan untuk fitur zoom to layer
+        var jalanLayers = [];
+        window.zoomToJalan = function (index) {
+            if (jalanLayers[index]) {
+                map.fitBounds(jalanLayers[index].getBounds(), { padding: [50, 50], maxZoom: 14 });
+            }
+        };
 
         // GeoJSON Polyline Jalan
         var jalan = L.geoJSON(null, {
-            // Style
+            pane: 'jalanPane', // Layer jalan selalu di atas layer penduduk
+            // Style berdasarkan NAMA_UNSUR
             style: function (feature) {
-                return {
-                    color: "red",
-                    opacity: 1,
-                    weight: 3,
-                };
+                var unsur = (feature.properties.NAMA_UNSUR || "").toLowerCase();
+
+                if (unsur.includes("propinsi") || unsur.includes("provinsi")) {
+                    return {
+                        color: "red",
+                        opacity: 1,
+                        weight: 3,
+                    };
+                } else if (unsur.includes("kabupaten")) {
+                    return {
+                        color: "red",
+                        opacity: 1,
+                        weight: 1.5,
+                        dashArray: "10, 8", // Garis putus-putus
+                    };
+                } else {
+                    // Jalan Lain
+                    return {
+                        color: "red",
+                        opacity: 1,
+                        weight: 0.5,
+                        dashArray: "3, 5", // Garis putus-putus pendek
+                    };
+                }
             },
-            // onEachFeature
             onEachFeature: function (feature, layer) {
-                // variable popup content
-                var popup_content = "Fungsi:"+feature.properties.NAMA_UNSUR + '<br>' +"Panjang (km): " + feature.properties.panjang_km;
+                var index = jalanLayers.length;
+                jalanLayers.push(layer);
+
+                var popup_content = createJalanPopup(feature, index);
+
+                layer.bindPopup(popup_content, {
+                    className: "inspo-leaflet-popup",
+                    maxWidth: 320,
+                    minWidth: 290,
+                    closeButton: true,
+                    autoPanPadding: [20, 20],
+                });
 
                 layer.on({
-                    click: function (e) {
-                        layer.bindPopup(popup_content).openPopup();
-                    },
                     mouseover: function (e) {
-                        layer.bindTooltip(String(feature.properties.panjang_km), {
+                        layer.bindTooltip((feature.properties.NAMA_UNSUR || "Jalan") + " (" + feature.properties.panjang_km + " km)", {
                             direction: "left",
                             sticky: true,
-                        }).openTooltip();
+                        });
                     },
                 });
             },
         });
 
         $.getJSON("geoJSON_JUMLAH_PENDUDUK/jalan.geojson", function (data) {
-            jalan.addData(data); // Menambahkan data ke dalam GeoJSON Polyline Jalan
-            map.addLayer(jalan); // Menambahkan GeoJSON Polyline Jalan ke dalam peta
+            jalan.addData(data);
+            map.addLayer(jalan);
         });
+
+        // Penyimpanan referensi layer penduduk untuk fitur zoom to layer
+        var pendudukLayers = [];
+        window.zoomToPenduduk = function (index) {
+            if (pendudukLayers[index]) {
+                map.fitBounds(pendudukLayers[index].getBounds(), { padding: [40, 40], maxZoom: 13 });
+            }
+        };
 
         // GeoJSON Polygon Jumlah Penduduk
         var jumlah_penduduk = L.geoJSON(null, {
-            // Style
+            pane: 'pendudukPane', // Layer penduduk berada di bawah layer jalan
             style: function (feature) {
                 if (feature.properties.Sheet1_Penduduk <= 12000) {
-                    return {
-                        opacity: 1,
-                        color: 'black',
-                        weight: 1.0,
-                        fillOpacity: 0.7,
-                        fillColor: '#eab0c8'
-                    }
+                    return { opacity: 1, color: 'black', weight: 1.0, fillOpacity: 0.7, fillColor: '#eab0c8' }
                 }
-                if (feature.properties.Sheet1_Penduduk >12000 && feature.properties.Sheet1_Penduduk <= 24000) {
-                    return {
-                        opacity: 1,
-                        color: 'black',
-                        weight: 1.0,
-                        fillOpacity: 0.7,
-                        fillColor: '#c9d863'
-                    }
+                if (feature.properties.Sheet1_Penduduk > 12000 && feature.properties.Sheet1_Penduduk <= 24000) {
+                    return { opacity: 1, color: 'black', weight: 1.0, fillOpacity: 0.7, fillColor: '#c9d863' }
                 }
                 if (feature.properties.Sheet1_Penduduk > 24000) {
-                    return {
-                        opacity: 1,
-                        color: 'black',
-                        weight: 1.0,
-                        fillOpacity: 0.7,
-                        fillColor: '#6e1e3b'
-                    }
+                    return { opacity: 1, color: 'black', weight: 1.0, fillOpacity: 0.7, fillColor: '#6e1e3b' }
                 }
             },
-            // onEachFeature
             onEachFeature: function (feature, layer) {
-                // variable popup content
-                var popup_content = "Kecamatan: " + feature.properties.WADMKC + "<br>" +
-                    "Jumlah Penduduk: " + feature.properties.Sheet1_Penduduk;
+                var index = pendudukLayers.length;
+                pendudukLayers.push(layer);
+
+                // Registrasi kecamatan untuk fitur pencarian
+                var props = feature.properties || {};
+                var rawKec = (props.WADMKC || "").trim();
+                if (rawKec) {
+                    var kecLower = rawKec.toLowerCase();
+                    if (!kecamatanLayersMap[kecLower]) {
+                        var itemObj = {
+                            name: rawKec,
+                            lower: kecLower,
+                            layer: layer,
+                            penduduk: props.Sheet1_Penduduk || 0
+                        };
+                        kecamatanLayersMap[kecLower] = itemObj;
+                        allKecamatans.push(itemObj);
+                    }
+                }
+
+                var popup_content = createPendudukPopup(feature, index);
+
+                layer.bindPopup(popup_content, {
+                    className: "inspo-leaflet-popup",
+                    maxWidth: 320,
+                    minWidth: 290,
+                    closeButton: true,
+                    autoPanPadding: [20, 20],
+                });
 
                 layer.on({
-                    click: function (e) {
-                        layer.bindPopup(popup_content).openPopup();
-                    },
                     mouseover: function (e) {
-                        layer.bindTooltip(String(feature.properties.WADMKC), {
+                        layer.bindTooltip("Kec. " + String(feature.properties.WADMKC) + " (" + Number(feature.properties.Sheet1_Penduduk).toLocaleString('id-ID') + " Jiwa)", {
                             direction: "auto",
                             sticky: true,
-                        }).openTooltip();
+                        });
                     },
                 });
             },
-
         });
+
+        // Struktur data untuk fitur pencarian kecamatan
+        var allKecamatans = [];
+        var kecamatanLayersMap = {};
+
         $.getJSON("geoJSON_JUMLAH_PENDUDUK/jumlah_penduduk_lagi.geojson", function (data) {
-            jumlah_penduduk.addData(data); // Menambahkan data ke dalam GeoJSON Polygon Jumlah Penduduk
-            map.addLayer(jumlah_penduduk); // Menambahkan GeoJSON Polygon Jumlah Penduduk ke dalam peta
+            jumlah_penduduk.addData(data);
+            map.addLayer(jumlah_penduduk);
+
+            // Urutkan daftar kecamatan secara alfabetis
+            allKecamatans.sort(function (a, b) {
+                return a.name.localeCompare(b.name);
+            });
         });
 
-        // Control Layer
+        // ========================================================
+        // FITUR PENCARIAN KECAMATAN (DI BAWAH ZOOM IN / ZOOM OUT)
+        // ========================================================
+        var KecamatanSearchControl = L.Control.extend({
+            options: {
+                position: 'topleft' // Berada tepat di bawah tombol zoom in / zoom out
+            },
+            onAdd: function (map) {
+                var container = L.DomUtil.create('div', 'leaflet-control-kecamatan-search');
+
+                container.innerHTML = `
+                    <!-- Logo Kaca Pembesar (Kondisi Awal / Collapsed) -->
+                    <button type="button" class="kecamatan-search-toggle-btn" id="kecamatanSearchToggleBtn" title="Cari Nama Kecamatan">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+
+                    <!-- Input Pencarian (Muncul Mengembang saat Logo Diklik) -->
+                    <div class="kecamatan-search-box-expand" id="kecamatanSearchBoxExpand" style="display: none;">
+                        <i class="fa-solid fa-magnifying-glass kecamatan-search-icon"></i>
+                        <input type="text" id="kecamatanSearchInput" class="kecamatan-search-input" placeholder="Ketik nama kecamatan..." autocomplete="off">
+                        <button type="button" class="kecamatan-search-clear-btn" id="kecamatanSearchClearBtn" title="Tutup / Bersihkan">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <!-- Dropdown Saran / Autocomplete Kecamatan -->
+                    <div class="kecamatan-suggestions-dropdown" id="kecamatanSuggestionsDropdown"></div>
+                `;
+
+                // Nonaktifkan propagasi klik dan scroll ke peta
+                L.DomEvent.disableClickPropagation(container);
+                L.DomEvent.disableScrollPropagation(container);
+
+                return container;
+            }
+        });
+
+        map.addControl(new KecamatanSearchControl());
+
+        // Render daftar saran kecamatan pada dropdown autocomplete
+        function renderKecamatanSuggestions(query) {
+            var $dropdown = $('#kecamatanSuggestionsDropdown');
+            $dropdown.empty();
+            query = (query || "").trim().toLowerCase();
+
+            var filtered = allKecamatans.filter(function (item) {
+                return !query || item.lower.includes(query);
+            });
+
+            if (filtered.length === 0) {
+                $dropdown.html(`
+                    <div class="p-2 text-secondary text-center small">
+                        <i class="fa-solid fa-circle-exclamation me-1 text-danger"></i> Kecamatan tidak ditemukan
+                    </div>
+                `);
+                $dropdown.show();
+                return;
+            }
+
+            filtered.forEach(function (item) {
+                var pendudukFormatted = Number(item.penduduk).toLocaleString('id-ID') + " Jiwa";
+                var $opt = $(`
+                    <div class="kecamatan-suggestion-item" data-name="${escapeHtml(item.name)}">
+                        <div class="kecamatan-sugg-name">
+                            <i class="fa-solid fa-location-dot me-1" style="color: #700143;"></i>
+                            ${escapeHtml(item.name)}
+                        </div>
+                        <div class="kecamatan-sugg-badge">${pendudukFormatted}</div>
+                    </div>
+                `);
+
+                $opt.on('click', function () {
+                    navigateToKecamatan(item.name);
+                });
+
+                $dropdown.append($opt);
+            });
+
+            $dropdown.show();
+        }
+
+        // Fungsi navigasi / zoom menuju kecamatan yang dipilih
+        function navigateToKecamatan(kecName) {
+            if (!kecName) return;
+            var item = kecamatanLayersMap[kecName.trim().toLowerCase()];
+            if (item && item.layer) {
+                // Zoom & Pusatkan peta ke poligon kecamatan yang dicari
+                map.fitBounds(item.layer.getBounds(), { padding: [55, 55], maxZoom: 13 });
+
+                // Buka popup informasi kecamatan
+                item.layer.openPopup();
+
+                // Animasi highlight poligon terpilih dengan warna #700143
+                item.layer.setStyle({
+                    weight: 4.5,
+                    color: '#700143',
+                    fillOpacity: 0.85
+                });
+
+                setTimeout(function () {
+                    jumlah_penduduk.resetStyle(item.layer);
+                }, 2400);
+
+                // Perbarui input teks & tutup dropdown saran
+                $('#kecamatanSearchInput').val(item.name);
+                $('#kecamatanSuggestionsDropdown').hide();
+            }
+        }
+
+        // Event saat tombol kaca pembesar diklik
+        $(document).on('click', '#kecamatanSearchToggleBtn', function (e) {
+            e.stopPropagation();
+            $(this).hide();
+            $('#kecamatanSearchBoxExpand').css('display', 'flex');
+            $('#kecamatanSearchInput').focus();
+            renderKecamatanSuggestions($('#kecamatanSearchInput').val());
+        });
+
+        // Event saat mengetik di input pencarian
+        $(document).on('input', '#kecamatanSearchInput', function () {
+            renderKecamatanSuggestions($(this).val());
+        });
+
+        // Event keyboard Enter & Escape pada input
+        $(document).on('keydown', '#kecamatanSearchInput', function (e) {
+            if (e.key === 'Enter') {
+                var q = $(this).val().trim().toLowerCase();
+                var matched = allKecamatans.find(function (it) {
+                    return it.lower === q || it.lower.includes(q);
+                });
+                if (matched) {
+                    navigateToKecamatan(matched.name);
+                }
+            } else if (e.key === 'Escape') {
+                closeKecamatanSearch();
+            }
+        });
+
+        // Event tombol bersihkan / tutup pencarian
+        $(document).on('click', '#kecamatanSearchClearBtn', function (e) {
+            e.stopPropagation();
+            if ($('#kecamatanSearchInput').val().length > 0) {
+                $('#kecamatanSearchInput').val('').focus();
+                renderKecamatanSuggestions('');
+            } else {
+                closeKecamatanSearch();
+            }
+        });
+
+        function closeKecamatanSearch() {
+            $('#kecamatanSuggestionsDropdown').hide();
+            $('#kecamatanSearchBoxExpand').hide();
+            $('#kecamatanSearchToggleBtn').show();
+        }
+
+        // Klik di luar area search control untuk menutup dropdown saran
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('.leaflet-control-kecamatan-search').length) {
+                $('#kecamatanSuggestionsDropdown').hide();
+                if ($('#kecamatanSearchInput').val().trim() === '') {
+                    closeKecamatanSearch();
+                }
+            }
+        });
+
+        // ========================================================
+        // LOGIKA SKALA PETA DINAMIS (POJOK KIRI BAWAH - #700143)
+        // ========================================================
+        function updateMapScale() {
+            if (!map) return;
+            var y = map.getSize().y / 2;
+            var p1 = map.containerPointToLatLng([0, y]);
+            var p2 = map.containerPointToLatLng([100, y]);
+            var maxMeters = map.distance(p1, p2);
+
+            var niceDistances = [
+                1000000, 500000, 200000, 100000, 50000, 20000, 10000, 5000, 2000, 1000,
+                500, 200, 100, 50, 20, 10
+            ];
+            var chosenMeters = niceDistances[0];
+            for (var i = 0; i < niceDistances.length; i++) {
+                if (niceDistances[i] <= maxMeters) {
+                    chosenMeters = niceDistances[i];
+                    break;
+                }
+            }
+
+            var barWidth = Math.max(35, Math.min(105, Math.round(100 * (chosenMeters / maxMeters))));
+            var distLabel = chosenMeters >= 1000 ? (chosenMeters / 1000) + ' km' : chosenMeters + ' m';
+
+            // Representative fraction pada 96 DPI
+            var metersPerPx = maxMeters / 100;
+            var rf = Math.round(metersPerPx * (96 / 0.0254));
+            var rfFormatted = "1 : " + rf.toLocaleString('id-ID');
+
+            $('#scaleWidgetBar').css('width', barWidth + 'px');
+            $('#scaleDistanceVal').text(distLabel);
+            $('#scaleRatioBadge').text(rfFormatted);
+        }
+
+        map.on('zoomend moveend', updateMapScale);
+        updateMapScale();
+
+        // ========================================================
+        // LOGIKA LEGENDA TERUS TERTAMPIL DI POJOK KANAN BAWAH
+        // ========================================================
+        $('#stampMinimizeBtn').on('click', function (e) {
+            e.stopPropagation();
+            var $leg = $('#dockedLegendContainer');
+            $leg.toggleClass('minimized');
+            if ($leg.hasClass('minimized')) {
+                $('#stampMinIcon').removeClass('fa-minus').addClass('fa-plus');
+                $(this).attr('title', 'Tampilkan Legenda');
+            } else {
+                $('#stampMinIcon').removeClass('fa-plus').addClass('fa-minus');
+                $(this).attr('title', 'Kecilkan Legenda');
+            }
+        });
+
+        $('#compactLegendHeader').on('click', function (e) {
+            if ($(e.target).closest('#stampMinimizeBtn').length) return;
+            $('#stampMinimizeBtn').trigger('click');
+        });
+
+        $('#stampMinimizedPill').on('click', function () {
+            $('#dockedLegendContainer').removeClass('minimized');
+            $('#stampMinIcon').removeClass('fa-plus').addClass('fa-minus');
+            $('#stampMinimizeBtn').attr('title', 'Kecilkan Legenda');
+        });
+
+        // Klik "Legenda" di navbar untuk membuka modal legenda besar yang lengkap
+        $('#navbarLegendLink').on('click', function (e) {
+            e.preventDefault();
+            $('#legendModal').modal('show');
+        });
+
+        // Layer dummy untuk mengontrol aktif/tidaknya Legenda Ringkas di pojok kanan bawah via Control Layer
+        var legendaRingkasLayer = L.layerGroup();
+        legendaRingkasLayer.addTo(map); // Default tercentang / aktif
+
+        map.on('overlayadd', function (e) {
+            if (e.name === "Legenda Ringkas") {
+                $('#dockedLegendContainer').fadeIn(200);
+            }
+        });
+
+        map.on('overlayremove', function (e) {
+            if (e.name === "Legenda Ringkas") {
+                $('#dockedLegendContainer').fadeOut(200);
+            }
+        });
+
+        // Control Layer (Mendukung Basemap OpenStreetMap & Esri Satellite)
         var baseMaps = {
-            "Basemap": basemap,
+            "OpenStreetMap": osm,
+            "Esri Satellite": esriSatellite,
         };
 
         var overlayMaps = {
